@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee_Master</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+            body 
+            {
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
+            font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+            padding: 30px;
+            color: #fff;
+        }
+
+        .container
+        {
+            max-width: 650px; /* thoda chhota */
+            margin: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 25px 35px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.4);
+        }
+
+        h2 
+        {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f1f1f1;
+            font-size: 22px;
+        }
+
+        label 
+        {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        select 
+        {
+            width: 95%;   
+            max-width: 500px;
+            padding: 6px 8px;
+            margin-bottom: 12px;
+            border-radius: 6px;
+            border: none;
+            box-shadow: inset 0 0 4px rgba(0,0,0,0.1);
+            font-size: 14px;
+            height: 32px; 
+        }
+
+        input:read-only 
+        {
+            background-color: #eee;
+            color: #333;
+        }
+
+        .radio-group 
+        {
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .radio-group input[type="radio"] 
+        {
+            margin-right: 6px;
+        }
+
+        .radio-group label 
+        {
+            display: inline;
+            margin-right: 12px;
+            font-weight: normal;
+        }
+
+        #cl_days_block 
+        {
+            background-color: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        input:focus, select:focus 
+        {
+            outline: none;
+            border: 2px solid #1abc9c;
+            background-color: #fdfdfd;
+            color: #000;
+        }
+
+        /* Extra input fields (HR, Travel, etc.) */
+        .extra-row 
+        {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .extra-row input 
+        {
+            width: 200px; 
+            padding: 4px 16px;
+            height: 28px;
+            font-size: 13px;
+            margin-right: 8px;
+            margin-left: 210px;
+        }
+
+        .extra-amount 
+        {
+            font-weight: bold;
+            color: yellow;
+            font-size: 13px;
+        }
+
+        h3 
+        {
+            text-align: center;
+            margin: 15px 0;
+            font-size: 16px;
+        }
+
+        center label 
+        {
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 15px;
+            
+        }
+
+        #ets 
+        {
+            width: 200px;
+            font-size: 15px;
+            font-weight: bold;
+            height: 34px;
+        }
+
+    </style>
+
+    <script>
+        $(document).ready(function () 
+        {
+            $('#month, #year').on('change', function () 
+            {
+                var month = parseInt($('#month').val());
+                var year = parseInt($('#year').val());
+                if (!month || !year) 
+                {
+                    $('#tdim').val('');
+                    return;
+                }
+                var daysInMonth;
+                if (month === 2) 
+                {
+                    if ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) 
+                    {
+                        daysInMonth = 29;
+                    }
+                    else 
+                    {
+                        daysInMonth = 28;
+                    }
+                }
+                else if ([4, 6, 9, 11].includes(month)) 
+                {
+                    daysInMonth = 30;
+                }
+                else 
+                {
+                    daysInMonth = 31;
+                }
+                $('#tdim').val(daysInMonth);
+            });
+
+            $("#epd").keyup(function () 
+            {
+                var TDIM = parseInt($("#tdim").val());
+                var EPDS = parseInt($("#epds").val());
+                var EPD = parseInt($("#epd").val());
+                var EAD = TDIM - EPD;
+                $("#ead").val(EAD);
+            });
+
+            $("#yes_cl").click(function () 
+            {
+                $("#cl_days_block").show();
+            });
+
+            $("#no_cl").click(function () 
+            {
+                $("#epd").prop("readOnly", true);
+                $("#cl_days_block").hide();
+                var EPDS = parseInt($("#epds").val());
+                var EPD = parseInt($("#epd").val());
+                var ES = EPD * EPDS;
+                $("#es").val(ES);
+                calculateTotalSalary();
+            });
+
+            $("#cl_days").keyup(function () 
+            {
+                $("#epd").prop("readOnly", true);
+                var EAD = parseInt($("#ead").val());
+                var CL_DAYS = parseInt($("#cl_days").val());
+                if (CL_DAYS <= EAD) 
+                {
+                    var EPD = parseInt($("#epd").val());
+                    var ETPD = EPD + CL_DAYS;
+                    $("#etpd").val(ETPD);
+                    var TDIM = parseInt($("#tdim").val());
+                    var ETAD = TDIM - ETPD;
+                    $("#etad").val(ETAD);
+                    var EPDS = parseInt($("#epds").val());
+                    var ES = ETPD * EPDS;
+                    $("#es").val(ES);
+                    calculateTotalSalary();
+                } else {
+                    alert("You have entered invalid CL days");
+                    $("#cl_days").val("");
+                }
+            });
+
+            // New Updation
+            function calculateTotalSalary() 
+            {
+                var baseSalary = parseFloat($("#es").val()) || 0;
+                var total = baseSalary;
+
+                $(".extra-input").each(function () 
+                {
+                    var percent = parseFloat($(this).val()) || 0;
+                    var extraAmount = (baseSalary * percent) / 100;
+                    $(this).siblings(".extra-amount").text("₹" + extraAmount.toFixed(2));
+                    total += extraAmount;
+                });
+
+                $("#ets").val(total.toFixed(2));
+            }
+
+            $(".extra-input").on("keyup change", function () 
+            {
+                calculateTotalSalary();
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Employee Salary Master</h2>
+
+        <label for="year">Enter Year:</label>
+        <input type="number" id="year" placeholder="e.g. 2025">
+
+        <label for="month">Select Month:</label>
+        <select id="month">
+            <option value="">Select Month</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+        </select>
+        <label>Total Days In Month:</label>
+        <input type="text" id="tdim" readonly>
+
+        <label>Employee Per Day Salary:</label>
+        <input type="text" id="epds">
+
+        <label>Employee Present Days:</label>
+        <input type="text" id="epd">
+
+        <label>Employee Absent Days:</label>
+        <input type="text" id="ead" readonly>
+
+        <div class="radio-group">
+            <label>Allow CL:</label>
+            <input type="radio" id="yes_cl" name="cl_radio"><label for="yes_cl">Yes</label>
+            <input type="radio" id="no_cl" name="cl_radio"><label for="no_cl">No</label>
+        </div>
+
+        <div id="cl_days_block" style="display: none;">
+            <label>Enter CL Days:</label>
+            <input type="text" id="cl_days">
+
+            <label>Employee Total Present Days:</label>
+            <input type="text" id="etpd" readonly>
+
+            <label>Employee Total Absent Days:</label>
+            <input type="text" id="etad" readonly>
+        </div>
+
+        <label>Employee Salary:</label>
+        <input type="text" id="es" readonly>
+
+        <h3>Additional Pay On Salary</h3>
+        <div class="extra-row">
+            <input type="number" class="extra-input" id="hr" placeholder="HR %">
+            <span class="extra-amount"></span>
+        </div>
+        <div class="extra-row">
+            <input type="number" class="extra-input" id="tr" placeholder="Travel %">
+            <span class="extra-amount"></span>
+        </div>
+        <div class="extra-row">
+            <input type="number" class="extra-input" id="sd" placeholder="S.D %">
+            <span class="extra-amount"></span>
+        </div>
+        <div class="extra-row">
+            <input type="number" class="extra-input" id="mb" placeholder="M.D %">
+            <span class="extra-amount"></span>
+        </div>
+        <div class="extra-row">
+            <input type="number" class="extra-input" id="fb" placeholder="Food %">
+            <span class="extra-amount"></span>
+        </div>
+
+        <center>
+            <label>Employee Total Salary</label>
+            <input type="number" id="ets" readonly>
+        </center>
+    </div>
+</body>
+</html>
